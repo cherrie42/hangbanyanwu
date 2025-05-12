@@ -17,6 +17,8 @@ from sklearn.metrics import fbeta_score, accuracy_score, precision_score, recall
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns
 import joblib
+from sklearn.model_selection import train_test_split, learning_curve, cross_validate
+
 
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
 plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
@@ -189,23 +191,27 @@ def plot_roc_curves(models, X_val, y_val, model_names, colors):
 
 
 # 训练并评估模型，收集结果
-def evaluate_models(models, X_train, y_train, X_test, y_test, model_names):
+def evaluate_models_with_cv(models, X, y, model_names, cv=5):
     results = []
 
     for i, model in enumerate(models):
-        print(f"\n训练 {model_names[i]} 模型...")
-        model.fit(X_train, y_train)
+        print(f"\n使用交叉验证评估 {model_names[i]} 模型...")
 
-        # 在测试集上评估
-        test_pred = model.predict(X_test)
+        # 使用交叉验证评估模型
+        cv_results = cross_validate(
+            model, X, y,
+            cv=cv,
+            scoring=['accuracy', 'precision', 'recall', 'f1'],
+            return_train_score=False,
+            n_jobs=-1
+        )
 
-        # 计算各项指标
-        accuracy = accuracy_score(y_test, test_pred)
-        precision = precision_score(y_test, test_pred, average='binary')
-        recall = recall_score(y_test, test_pred, average='binary')
-        f1 = fbeta_score(y_test, test_pred, beta=1)
+        # 平均指标
+        accuracy = np.mean(cv_results['test_accuracy'])
+        precision = np.mean(cv_results['test_precision'])
+        recall = np.mean(cv_results['test_recall'])
+        f1 = np.mean(cv_results['test_f1'])
 
-        # 存储结果
         results.append({
             '模型': model_names[i],
             '准确率': accuracy,
@@ -214,17 +220,17 @@ def evaluate_models(models, X_train, y_train, X_test, y_test, model_names):
             'F1分数': f1
         })
 
-        print(f"{model_names[i]} 测试集指标:")
+        print(f"{model_names[i]} CV 平均指标:")
         print(f"准确率: {accuracy:.4f}")
         print(f"精确率: {precision:.4f}")
         print(f"召回率: {recall:.4f}")
         print(f"F1分数: {f1:.4f}")
 
-        # 保存模型
+        # 训练整个训练集后保存模型（可选）
+        model.fit(X, y)
         joblib.dump(model, f'flight_delay_{model_names[i].lower().replace(" ", "_")}_model.pkl')
         print(f"{model_names[i]} 模型已保存为 flight_delay_{model_names[i].lower().replace(' ', '_')}_model.pkl")
 
-    # 返回结果
     return pd.DataFrame(results)
 
 
@@ -238,7 +244,8 @@ plot_validation_learning_curves(models, X_train_scaled, y_train, model_names, co
 plot_roc_curves(models, X_val_scaled, y_val, model_names, colors)
 
 # 评估模型并获取结果
-results_df = evaluate_models(models, X_train_scaled, y_train, X_test_scaled, y_test, model_names)
+results_df = evaluate_models_with_cv(models, X_train_scaled, y_train, model_names, cv=5)
+
 
 # 打印模型对比表格
 print("\n===== 模型性能对比 =====")
@@ -323,4 +330,42 @@ for bar in bars:
 
 plt.tight_layout()
 plt.show()
+
+# 特征重要性可视化（仅支持部分模型）
+def plot_feature_importance(model, model_name, feature_names, top_n=15):
+    plt.figure(figsize=(10, 6))
+    
+    if hasattr(model, 'feature_importances_'):
+        importances = model.feature_importances_
+    elif hasattr(model, 'coef_'):
+        importances = np.abs(model.coef_).flatten()
+    else:
+        print(f"{model_name} 不支持特征重要性。")
+        return
+
+    indices = np.argsort(importances)[-top_n:][::-1]
+    top_features = [feature_names[i] for i in indices]
+    top_importances = importances[indices]
+
+    bars = plt.barh(top_features, top_importances, color='skyblue')
+    plt.xlabel("重要性", fontsize=12)
+    plt.title(f"{model_name} - Top {top_n} 特征重要性", fontsize=14, fontweight='bold')
+    plt.gca().invert_yaxis()
+    for i, v in enumerate(top_importances):
+        plt.text(v + 0.001, i, f"{v:.4f}", va='center', fontsize=9)
+    plt.tight_layout()
+    plt.show()
+
+
+# 打印模型性能表格
+print("\n===== 模型性能对比 =====")
+print(results_df.to_string(index=False))
+
+# 可选：展示支持特征重要性模型的前若干重要特征
+print("\n===== 特征重要性可视化（支持的模型） =====")
+# 重新训练一遍确保使用全部训练数据
+for i, model in enumerate(models):
+    model.fit(X_train_scaled, y_train)
+    plot_feature_importance(model, model_names[i], features, top_n=10)
+
 
