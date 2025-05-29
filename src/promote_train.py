@@ -8,14 +8,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import fbeta_score, accuracy_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split, GridSearchCV, learning_curve
+from sklearn.metrics import fbeta_score, accuracy_score, recall_score, f1_score, roc_curve, auc
 from sklearn.preprocessing import LabelEncoder
 import joblib
-from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.metrics import confusion_matrix
 import seaborn as sns
-from sklearn.model_selection import learning_curve
 from imblearn.over_sampling import SMOTE  # 新增：SMOTE过采样库
+
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
@@ -116,36 +116,68 @@ test_acc = accuracy_score(y_test, test_pred)
 print(f"测试集 F-score: {test_f_score:.4f}, 准确率: {test_acc:.4f}")
 
 # ----------------------
-# 8. 可视化函数（与原始代码一致）
+# 8. 可视化函数
 # ----------------------
 def plot_learning_curve(estimator, X, y, title):
-    # 函数内容与原始代码一致，略
-    ...
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator, X, y, cv=5, n_jobs=-1, 
+        train_sizes=np.linspace(0.1, 1.0, 10),
+        scoring='accuracy'
+    )
+    
+    train_mean = np.mean(train_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    val_mean = np.mean(val_scores, axis=1)
+    val_std = np.std(val_scores, axis=1)
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_sizes, train_mean, label='训练集得分', color='blue', marker='o')
+    plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, alpha=0.15, color='blue')
+    plt.plot(train_sizes, val_mean, label='验证集得分', color='green', marker='o')
+    plt.fill_between(train_sizes, val_mean - val_std, val_mean + val_std, alpha=0.15, color='green')
+    plt.xlabel('训练样本数')
+    plt.ylabel('准确率')
+    plt.title(title)
+    plt.legend(loc='lower right')
+    plt.grid(True)
+    plt.show()
 
-def plot_confusion_matrix(y_true, y_pred, title):
-    # 函数内容与原始代码一致，略
-    ...
+def plot_roc_curve(y_true, y_pred_proba, title):
+    fpr, tpr, _ = roc_curve(y_true, y_pred_proba[:, 1])
+    roc_auc = auc(fpr, tpr)
+    
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC曲线 (AUC = {roc_auc:.3f})')
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('假阳性率')
+    plt.ylabel('真阳性率')
+    plt.title(title)
+    plt.legend(loc="lower right")
+    plt.show()
 
-def plot_roc_curve(y_true, y_pred_proba):
-    # 函数内容与原始代码一致，略
-    ...
-
-def plot_feature_importance(model, feature_names):
-    # 函数内容与原始代码一致，略
-    ...
-
-# 绘制学习曲线（使用过采样后的训练数据）
-print("绘制学习曲线...")
+# 绘制基础模型和优化后模型的学习曲线
+plot_learning_curve(base_rf, X_train, y_train, "基础随机森林学习曲线")
 plot_learning_curve(best_rf, X_resampled, y_resampled, "优化后随机森林学习曲线")
 
-# 绘制混淆矩阵和ROC曲线（与原始代码一致）
-print("绘制混淆矩阵...")
-plot_confusion_matrix(y_val, tuned_val_pred, "验证集混淆矩阵")
-
-print("绘制ROC曲线...")
-plot_roc_curve(y_val, tuned_val_pred_proba)
+# 绘制基础模型和优化后模型的ROC曲线
+base_val_pred_proba = base_rf.predict_proba(X_val)
+plot_roc_curve(y_val, base_val_pred_proba, "基础随机森林ROC曲线")
+plot_roc_curve(y_val, tuned_val_pred_proba, "优化后随机森林ROC曲线")
 
 # 特征重要性分析（与原始代码一致）
+def plot_feature_importance(model, feature_names):
+    importance = model.feature_importances_
+    indices = np.argsort(importance)[::-1]
+    
+    plt.figure(figsize=(12, 8))
+    plt.title("特征重要性排序")
+    plt.bar(range(len(importance)), importance[indices])
+    plt.xticks(range(len(importance)), [feature_names[i] for i in indices], rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
 print("\n8. 特征重要性分析...")
 plot_feature_importance(best_rf, features)
 
