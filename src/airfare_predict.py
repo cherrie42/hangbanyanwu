@@ -25,8 +25,8 @@ plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
 # 1. 数据加载
 print("1. 加载数据...")
-train_data = pd.read_csv('./data/train.csv')
-test_data = pd.read_csv('./data/test.csv')
+train_data = pd.read_csv('../data/train.csv')
+test_data = pd.read_csv('../data/test.csv')
 
 # 2. 特征工程
 print("\n2. 特征工程...")

@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score, recall_score, f1_score  # 新增评�
 import joblib
 
 # 加载数据集
-data = pd.read_csv('./data/train.csv')
+data = pd.read_csv('../data/train.csv')
 
 # 提取特征和目标变量（注意：删除无关列'Unnamed: 0'）
 X = data.drop(['Unnamed: 0', '飞机延误目标'], axis=1)

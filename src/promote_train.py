@@ -23,8 +23,8 @@ plt.rcParams['axes.unicode_minus'] = False
 # 1. 数据加载（与原始代码一致）
 # ----------------------
 print("1. 加载数据...")
-train_data = pd.read_csv('./data/train.csv')
-test_data = pd.read_csv('./data/test.csv')
+train_data = pd.read_csv('../data/train.csv')
+test_data = pd.read_csv('../data/test.csv')
 
 # 2. 特征工程（与原始代码一致）
 print("\n2. 特征工程...")
