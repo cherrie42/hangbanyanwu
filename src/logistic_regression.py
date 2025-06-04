@@ -20,8 +20,8 @@ plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
 # 1. 数据加载
 print("1. 加载数据...")
-train_data = pd.read_csv('../data/train.csv')
-test_data = pd.read_csv('../data/test.csv')
+train_data = pd.read_csv('./data/train.csv', encoding='gbk')
+test_data = pd.read_csv('./data/test.csv', encoding='gbk')
 
 # 2. 特征工程
 print("\n2. 特征工程...")
@@ -183,5 +183,5 @@ plot_feature_importance(best_lr, features)
 
 # 8. 保存模型
 print("\n8. 保存模型...")
-joblib.dump(best_lr, 'flight_delay_lr_model.pkl')
-print("模型已保存为 flight_delay_lr_model.pkl")
+joblib.dump(best_lr, './model/flight_delay_lr_model.pkl')
+print("模型已保存为 ./model/flight_delay_lr_model.pkl")

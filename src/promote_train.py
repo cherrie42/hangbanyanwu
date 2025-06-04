@@ -23,8 +23,8 @@ plt.rcParams['axes.unicode_minus'] = False
 # 1. 数据加载（与原始代码一致）
 # ----------------------
 print("1. 加载数据...")
-train_data = pd.read_csv('../data/train.csv')
-test_data = pd.read_csv('../data/test.csv')
+train_data = pd.read_csv('./data/train.csv', encoding='gbk')
+test_data = pd.read_csv('./data/test.csv', encoding='gbk')
 
 # 2. 特征工程（与原始代码一致）
 print("\n2. 特征工程...")
@@ -185,5 +185,5 @@ plot_feature_importance(best_rf, features)
 # 9. 保存模型（与原始代码一致）
 # ----------------------
 print("\n9. 保存模型...")
-joblib.dump(best_rf, 'flight_delay_rf_model_optimized.pkl')
-print("优化模型已保存")
+joblib.dump(best_rf, './model/flight_delay_rf_model_optimized.pkl')
+print("./model/优化模型已保存")

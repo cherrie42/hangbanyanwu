@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score, recall_score, f1_score  # 新增评�
 import joblib
 
 # 加载数据集
-data = pd.read_csv('../data/train.csv')
+train_data = pd.read_csv('./data/train.csv', encoding='gbk')
 
 # 提取特征和目标变量（注意：删除无关列'Unnamed: 0'）
 X = data.drop(['Unnamed: 0', '飞机延误目标'], axis=1)
@@ -55,4 +55,4 @@ print(f"召回率: {recall:.4f}")
 print(f"F1分数: {f1:.4f}")
 
 # 保存模型
-joblib.dump(best_rf, 'flight_delay_rf_model_optimized-2.pkl')
+joblib.dump(best_rf, './model/flight_delay_rf_model_optimized-2.pkl')

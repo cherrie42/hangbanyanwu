@@ -25,8 +25,8 @@ plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
 # 1. 数据加载
 print("1. 加载数据...")
-train_data = pd.read_csv('../data/train.csv')
-test_data = pd.read_csv('../data/test.csv')
+train_data = pd.read_csv('./data/train.csv', encoding='gbk')
+test_data = pd.read_csv('./data/test.csv', encoding='gbk')
 
 # 2. 特征工程
 print("\n2. 特征工程...")
@@ -228,8 +228,8 @@ def evaluate_models_with_cv(models, X, y, model_names, cv=5):
 
         # 训练整个训练集后保存模型（可选）
         model.fit(X, y)
-        joblib.dump(model, f'flight_delay_{model_names[i].lower().replace(" ", "_")}_model.pkl')
-        print(f"{model_names[i]} 模型已保存为 flight_delay_{model_names[i].lower().replace(' ', '_')}_model.pkl")
+        joblib.dump(model, f'./model/flight_delay_{model_names[i].lower().replace(" ", "_")}_model.pkl')
+        print(f"{model_names[i]} 模型已保存为 ./model/flight_delay_{model_names[i].lower().replace(' ', '_')}_model.pkl")
 
     return pd.DataFrame(results)
 

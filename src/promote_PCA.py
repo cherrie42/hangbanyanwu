@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 import joblib
 
 # 加载数据集
-data = pd.read_csv('../data/train.csv')
+train_data = pd.read_csv('./data/train.csv', encoding='gbk')
 
 # 提取特征和目标变量
 X = data.drop(['Unnamed: 0', '飞机延误目标'], axis=1)
@@ -30,4 +30,4 @@ accuracy = accuracy_score(y_test, y_pred)
 print(f"PCA 降维后随机森林模型的准确率: {accuracy}")
 
 # 保存优化后的模型
-joblib.dump(rf, 'flight_delay_rf_model_pca_optimized-2.pkl')
+joblib.dump(rf, './model/flight_delay_rf_model_pca_optimized-2.pkl')
